@@ -1,61 +1,26 @@
 import os
+import templates
+import logging
 
 
 def lambda_handler(event, context):
     if event['userPoolId'] == os.environ['user_pool_id']:
         if event['triggerSource'] == "CustomMessage_SignUp":
-            event['response']['emailSubject'] = "HMV - Bem-vindo"
-            event['response']['emailMessage'] = SIGNUP.format(event['request']['userAttributes']['name'],
-                                                              event['request']['codeParameter'])
+            response = response_email(event, templates.resend_code.RESEND_CODE, "HMV - Bem-vindo")
 
         if event['triggerSource'] == "CustomMessage_ResendCode":
-            event['response']['emailSubject'] = "HMV - Novo código de confirmação"
-            event['response']['emailMessage'] = RESEND_CODE.format(event['request']['userAttributes']['name'],
-                                                                   event['request']['codeParameter'])
+            response = response_email(event, templates.resend_code.RESEND_CODE, "HMV - Novo código de confirmação")
 
         if event['triggerSource'] == "CustomMessage_ForgotPassword":
-            event['response']['emailSubject'] = "HMV - Recuperação de senha"
-            event['response']['emailMessage'] = FORGOT_PASSWORD.format(event['request']['userAttributes']['name'],
-                                                                       event['request']['codeParameter'])
+            response = response_email(event, templates.forgot_password.FORGOT_PASSWORD, "HMV - Recuperação de senha")
 
+    return response
+
+
+def response_email(event, trigger, email_subject):
+    event['response']['emailSubject'] = email_subject
+    event['response']['emailMessage'] = trigger.format(event['request']['userAttributes']['name'],
+                                                       event['request']['codeParameter'])
+
+    logging.info('Email template processed for triggerSource {}'.format(event['triggerSource']))
     return event
-
-
-SIGNUP = '''<html>
-    <body>
-        <td width="480" align="center" style="font-family: Arial; color: #000000; text-align: left; line-height: 18px;">
-            <span style="font-weight: bold; font-size: 14px;">Olá, {0}</span><br />
-            <br />
-            <span style="font-size: 14px;">
-                 Confirme seu cadastro inserindo o código:
-                <b>{1}</b> .
-            </span>
-
-        </td>
-    </body>
-</html>'''
-
-RESEND_CODE = '''<html>
-    <body>
-        <td width="480" align="center" style="font-family: Arial; color: #000000; text-align: left; line-height: 18px;">
-            <span style="font-weight: bold; font-size: 14px;">Olá, {0}</span><br />
-            <br />
-            <span style="font-size: 14px;">
-                Você solicitou um novo código de confirmação. Confirme seu cadastro inserindo o código:
-                <b>{1}</b>.
-            </span>
-        </td>
-    </body>
-</html>'''
-
-FORGOT_PASSWORD = '''<html>
-    <body>
-        <td width="480" align="center" style="font-family: Arial; color: #000000; text-align: left; line-height: 18px;">
-            <span style="font-weight: bold; font-size: 14px;">Olá, {0} </span><br />
-            <br />
-            <span style="font-size: 14px;">
-                Você solicitou a redefinição de senha. Insira o código: <b>{1}</b>  para cadastrar a sua nova senha.
-            </span>
-        </td>
-    </body>
-</html>'''
