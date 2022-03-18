@@ -1,12 +1,16 @@
 import os
-import templates
+import templates.forgot_password
+import templates.signup
+import templates.resend_code
 import logging
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
     if event['userPoolId'] == os.environ['user_pool_id']:
         if event['triggerSource'] == "CustomMessage_SignUp":
-            response = response_email(event, templates.resend_code.RESEND_CODE, "HMV - Bem-vindo")
+            response = response_email(event, templates.signup.SIGNUP, "HMV - Bem-vindo")
 
         if event['triggerSource'] == "CustomMessage_ResendCode":
             response = response_email(event, templates.resend_code.RESEND_CODE, "HMV - Novo código de confirmação")
